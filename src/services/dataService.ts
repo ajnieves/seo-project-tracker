@@ -139,13 +139,35 @@ const TASKS_KEY = 'seoTasks';
 const PROJECT_DOCS_KEY_PREFIX = 'seoProjectDocs_';
 const SETTINGS_KEY = 'seoSettings';
 
+// Get user-specific storage key
+const getUserKey = (key: string, userId?: string): string => {
+  if (!userId) {
+    // If no userId is provided, use the current user from localStorage
+    const currentUser = localStorage.getItem('seoCurrentUser');
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        return `${key}_${user.id}`;
+      } catch (error) {
+        console.error('Error parsing current user:', error);
+      }
+    }
+  } else {
+    return `${key}_${userId}`;
+  }
+  
+  // If no user is found or an error occurs, use the default key
+  return key;
+};
+
 // Local storage service
 class LocalStorageService {
   // Projects
   getProjects(): Project[] {
     if (typeof window === 'undefined') return [];
     
-    const storedProjects = localStorage.getItem(PROJECTS_KEY);
+    const key = getUserKey(PROJECTS_KEY);
+    const storedProjects = localStorage.getItem(key);
     if (storedProjects) {
       try {
         return JSON.parse(storedProjects);
@@ -156,20 +178,22 @@ class LocalStorageService {
     }
     
     // Initialize with mock data if not found
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(mockProjects));
+    localStorage.setItem(key, JSON.stringify(mockProjects));
     return mockProjects;
   }
   
   saveProjects(projects: Project[]): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    const key = getUserKey(PROJECTS_KEY);
+    localStorage.setItem(key, JSON.stringify(projects));
   }
   
   // Tasks
   getTasks(): Task[] {
     if (typeof window === 'undefined') return [];
     
-    const storedTasks = localStorage.getItem(TASKS_KEY);
+    const key = getUserKey(TASKS_KEY);
+    const storedTasks = localStorage.getItem(key);
     if (storedTasks) {
       try {
         return JSON.parse(storedTasks);
@@ -180,7 +204,7 @@ class LocalStorageService {
     }
     
     // Initialize with mock data if not found
-    localStorage.setItem(TASKS_KEY, JSON.stringify(mockTasks));
+    localStorage.setItem(key, JSON.stringify(mockTasks));
     return mockTasks;
   }
   
@@ -190,14 +214,16 @@ class LocalStorageService {
   
   saveTasks(tasks: Task[]): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    const key = getUserKey(TASKS_KEY);
+    localStorage.setItem(key, JSON.stringify(tasks));
   }
   
   // Documents
   getProjectDocuments(projectId: string): Document[] {
     if (typeof window === 'undefined') return [];
     
-    const key = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+    const baseKey = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+    const key = getUserKey(baseKey);
     const storedDocs = localStorage.getItem(key);
     if (storedDocs) {
       try {
@@ -213,7 +239,8 @@ class LocalStorageService {
   
   saveProjectDocuments(projectId: string, documents: Document[]): void {
     if (typeof window === 'undefined') return;
-    const key = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+    const baseKey = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+    const key = getUserKey(baseKey);
     localStorage.setItem(key, JSON.stringify(documents));
   }
   
@@ -221,7 +248,8 @@ class LocalStorageService {
   getSettings(): any {
     if (typeof window === 'undefined') return {};
     
-    const storedSettings = localStorage.getItem(SETTINGS_KEY);
+    const key = getUserKey(SETTINGS_KEY);
+    const storedSettings = localStorage.getItem(key);
     if (storedSettings) {
       try {
         return JSON.parse(storedSettings);
@@ -236,7 +264,8 @@ class LocalStorageService {
   
   saveSettings(settings: any): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    const key = getUserKey(SETTINGS_KEY);
+    localStorage.setItem(key, JSON.stringify(settings));
   }
   
   // Export all data
@@ -291,15 +320,40 @@ class LocalStorageService {
     }
   }
   
-  // Clear all data
+  // Clear all data for the current user
   clearAllData(): void {
     if (typeof window === 'undefined') return;
     
-    // Get all keys that start with 'seo'
-    const keys = Object.keys(localStorage).filter(key => key.startsWith('seo'));
+    // Get the current user ID
+    const currentUser = localStorage.getItem('seoCurrentUser');
+    let userId = '';
     
-    // Remove all keys
-    keys.forEach(key => localStorage.removeItem(key));
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        userId = user.id;
+      } catch (error) {
+        console.error('Error parsing current user:', error);
+      }
+    }
+    
+    if (userId) {
+      // Get all keys that start with 'seo' and contain the user ID
+      const keys = Object.keys(localStorage).filter(key => 
+        key.startsWith('seo') && key.includes(userId)
+      );
+      
+      // Remove all keys
+      keys.forEach(key => localStorage.removeItem(key));
+    } else {
+      // If no user ID, clear all 'seo' keys that don't have a user ID suffix
+      const keys = Object.keys(localStorage).filter(key => 
+        key.startsWith('seo') && !key.includes('_')
+      );
+      
+      // Remove all keys
+      keys.forEach(key => localStorage.removeItem(key));
+    }
   }
   
   // Delete multiple projects
@@ -326,7 +380,8 @@ class LocalStorageService {
     
     // Delete documents for each project
     projectIds.forEach(projectId => {
-      const key = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+      const baseKey = `${PROJECT_DOCS_KEY_PREFIX}${projectId}`;
+      const key = getUserKey(baseKey);
       localStorage.removeItem(key);
     });
   }

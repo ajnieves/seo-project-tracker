@@ -318,10 +318,13 @@ export default function Dashboard() {
                       )}
                     </ListItemIcon>
                     <Box sx={{ ml: 2, flexGrow: 1 }}>
-                      <Typography variant="body1">{task.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
-                      </Typography>
+                  <Typography variant="body1">{task.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Project: {projects.find(p => p.id === task.projectId)?.name || 'Unknown'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Due: {new Date(task.dueDate).toLocaleDateString()}
+                  </Typography>
                       <Box sx={{ mt: 1 }}>
                         <Chip 
                           label={task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} 

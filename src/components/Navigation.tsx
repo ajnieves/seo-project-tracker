@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
 import { 
   Box, 
   Drawer, 
@@ -36,6 +37,7 @@ interface NavigationProps {
 }
 
 export default function Navigation({ children }: NavigationProps) {
+  const { user, logout } = useUser();
   const pathname = usePathname();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -61,12 +63,15 @@ export default function Navigation({ children }: NavigationProps) {
     { text: 'Settings', icon: <SettingsIcon />, href: '/settings' },
   ];
 
-  // User menu items
-  const userMenuItems = [
-    { text: 'Profile', href: '/profile' },
-    { text: 'Account', href: '/account' },
-    { text: 'Logout', href: '/logout' },
-  ];
+  // User menu items based on authentication status
+  const userMenuItems = user
+    ? [
+        { text: 'Profile', href: '/auth' },
+        { text: 'Logout', onClick: () => logout() },
+      ]
+    : [
+        { text: 'Login / Register', href: '/auth' },
+      ];
 
   // Drawer content
   const drawerContent = (
@@ -140,10 +145,16 @@ export default function Navigation({ children }: NavigationProps) {
           </Typography>
 
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
+            <Tooltip title={user ? 'Account settings' : 'Login/Register'}>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="User" sx={{ bgcolor: 'secondary.main' }}>
-                  <AccountCircleIcon />
+                <Avatar alt={user?.name || 'User'} sx={{ bgcolor: 'secondary.main' }}>
+                  {user ? (
+                    user.name 
+                      ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                      : user.email.substring(0, 2).toUpperCase()
+                  ) : (
+                    <AccountCircleIcon />
+                  )}
                 </Avatar>
               </IconButton>
             </Tooltip>
@@ -164,14 +175,26 @@ export default function Navigation({ children }: NavigationProps) {
               onClose={handleCloseUserMenu}
             >
               {userMenuItems.map((item) => (
-                <MenuItem 
-                  key={item.text} 
-                  onClick={handleCloseUserMenu}
-                  component={Link}
-                  href={item.href}
-                >
-                  <Typography textAlign="center">{item.text}</Typography>
-                </MenuItem>
+                item.href ? (
+                  <MenuItem 
+                    key={item.text} 
+                    onClick={handleCloseUserMenu}
+                    component={Link}
+                    href={item.href}
+                  >
+                    <Typography textAlign="center">{item.text}</Typography>
+                  </MenuItem>
+                ) : (
+                  <MenuItem 
+                    key={item.text} 
+                    onClick={() => {
+                      handleCloseUserMenu();
+                      if (item.onClick) item.onClick();
+                    }}
+                  >
+                    <Typography textAlign="center">{item.text}</Typography>
+                  </MenuItem>
+                )
               ))}
             </Menu>
           </Box>
