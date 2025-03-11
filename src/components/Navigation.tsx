@@ -15,10 +15,7 @@ import {
   ListItemIcon, 
   ListItemText, 
   IconButton, 
-  Menu, 
-  MenuItem, 
   Avatar, 
-  Tooltip, 
   useMediaQuery, 
   useTheme
 } from '@mui/material';
@@ -42,18 +39,9 @@ export default function Navigation({ children }: NavigationProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
-  };
-
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
   };
 
   // Navigation items
@@ -75,13 +63,42 @@ export default function Navigation({ children }: NavigationProps) {
 
   // Drawer content
   const drawerContent = (
-    <Box sx={{ overflow: 'auto' }}>
+    <Box sx={{ overflow: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* User profile section at the top */}
+      <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
+        <Avatar 
+          alt={user?.name || 'User'} 
+          sx={{ 
+            width: 64, 
+            height: 64, 
+            mx: 'auto', 
+            mb: 1,
+            bgcolor: 'secondary.main',
+            boxShadow: 2
+          }}
+        >
+          {user ? (
+            user.name 
+              ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+              : user.email.substring(0, 2).toUpperCase()
+          ) : (
+            <AccountCircleIcon fontSize="large" />
+          )}
+        </Avatar>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          {user ? (user.name || user.email) : 'Guest User'}
+        </Typography>
+      </Box>
+      
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           SEO Projects Tracker
         </Typography>
       </Box>
+      
       <Divider />
+      
+      {/* Main navigation */}
       <List>
         {navItems.map((item) => (
           <ListItem key={item.text} disablePadding>
@@ -103,6 +120,37 @@ export default function Navigation({ children }: NavigationProps) {
               </ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      
+      <Box sx={{ flexGrow: 1 }} />
+      
+      {/* User menu items at the bottom */}
+      <Divider />
+      <List>
+        {userMenuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            {item.href ? (
+              <ListItemButton 
+                component={Link} 
+                href={item.href}
+              >
+                <ListItemIcon>
+                  <AccountCircleIcon />
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            ) : (
+              <ListItemButton 
+                onClick={item.onClick}
+              >
+                <ListItemIcon>
+                  <AccountCircleIcon />
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            )}
           </ListItem>
         ))}
       </List>
@@ -143,61 +191,6 @@ export default function Navigation({ children }: NavigationProps) {
           >
             {isMobile ? 'SEO Tracker' : 'SEO Projects Tracker'}
           </Typography>
-
-          <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title={user ? 'Account settings' : 'Login/Register'}>
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt={user?.name || 'User'} sx={{ bgcolor: 'secondary.main' }}>
-                  {user ? (
-                    user.name 
-                      ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
-                      : user.email.substring(0, 2).toUpperCase()
-                  ) : (
-                    <AccountCircleIcon />
-                  )}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {userMenuItems.map((item) => (
-                item.href ? (
-                  <MenuItem 
-                    key={item.text} 
-                    onClick={handleCloseUserMenu}
-                    component={Link}
-                    href={item.href}
-                  >
-                    <Typography textAlign="center">{item.text}</Typography>
-                  </MenuItem>
-                ) : (
-                  <MenuItem 
-                    key={item.text} 
-                    onClick={() => {
-                      handleCloseUserMenu();
-                      if (item.onClick) item.onClick();
-                    }}
-                  >
-                    <Typography textAlign="center">{item.text}</Typography>
-                  </MenuItem>
-                )
-              ))}
-            </Menu>
-          </Box>
         </Toolbar>
       </AppBar>
       

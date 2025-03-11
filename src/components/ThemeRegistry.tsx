@@ -75,8 +75,8 @@ const createAppTheme = (mode: 'light' | 'dark') => {
 };
 
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
-  // Get stored theme preference or default to 'light'
-  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('light');
+  // Get stored theme preference or default to 'system'
+  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
   const [activeMode, setActiveMode] = useState<'light' | 'dark'>('light');
 
   // Load theme preference from localStorage on mount

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { generateDemoProjectWithTasks } from '@/utils/demoData';
 import { 
   Box, 
   Button, 
@@ -21,12 +23,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  InputAdornment
+  InputAdornment,
+  Paper
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
 import AddIcon from '@mui/icons-material/Add';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 // Mock data for initial projects
 const initialProjects = [
@@ -68,6 +72,8 @@ const getCompletionPercentage = (completed: number, total: number) => {
 
 export default function ProjectsSection() {
   const router = useRouter();
+  // Get user from context
+  const { user } = useUser();
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [orderBy, setOrderBy] = useState<keyof Project>('createdAt');
@@ -85,15 +91,30 @@ export default function ProjectsSection() {
           setProjects(parsedProjects);
         } catch (error) {
           console.error('Error parsing projects from localStorage:', error);
-          setProjects(initialProjects);
+          setProjects([]);
         }
       } else {
-        // Initialize localStorage with default projects if it doesn't exist
-        localStorage.setItem('seoProjects', JSON.stringify(initialProjects));
-        setProjects(initialProjects);
+        // For non-logged-in users, generate a demo project with tasks
+        if (!user) {
+          generateDemoProjectWithTasks();
+          // Fetch the newly generated project
+          const generatedProjects = localStorage.getItem('seoProjects');
+          if (generatedProjects) {
+            try {
+              setProjects(JSON.parse(generatedProjects));
+            } catch (error) {
+              console.error('Error parsing generated projects:', error);
+              setProjects([]);
+            }
+          }
+        } else {
+          // For logged-in users, initialize with empty projects
+          localStorage.setItem('seoProjects', JSON.stringify([]));
+          setProjects([]);
+        }
       }
     }
-  }, []);
+  }, [user]);
   
   // Handle changing the sort order
   const handleRequestSort = (property: keyof Project) => {
@@ -125,6 +146,12 @@ export default function ProjectsSection() {
   });
 
   const handleOpenDialog = () => {
+    // Check if user is not logged in and already has a project
+    if (!user && projects.length >= 1) {
+      // Show dialog with message that user needs to log in to create more projects
+      alert('You need to log in to create more than 1 project. Please log in or register to unlock unlimited projects.');
+      return;
+    }
     setOpenDialog(true);
   };
 
@@ -159,6 +186,41 @@ export default function ProjectsSection() {
 
   return (
     <Box>
+      {/* Free tier limitations banner */}
+      {!user && (
+        <Paper 
+          sx={{ 
+            p: 2, 
+            mb: 3, 
+            bgcolor: 'primary.light', 
+            color: 'primary.contrastText',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2
+          }}
+        >
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Free Account Limitations
+            </Typography>
+            <Typography variant="body2">
+              You are currently using a free account which is limited to 1 project and 5 tasks per project.
+            </Typography>
+          </Box>
+          <Button 
+            variant="contained" 
+            color="secondary"
+            component={Link}
+            href="/auth"
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Login or Register
+          </Button>
+        </Paper>
+      )}
+
       {/* Projects Section */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

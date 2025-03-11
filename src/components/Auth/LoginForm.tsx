@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Box,
   Button,
@@ -37,6 +38,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function LoginForm() {
+  const router = useRouter();
   const { login, register } = useUser();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -69,10 +71,15 @@ export default function LoginForm() {
       if (!user) {
         setError('Invalid email or password');
       } else {
-        setSuccess('Login successful!');
+        setSuccess('Login successful! Redirecting to dashboard...');
         // Clear form
         setLoginEmail('');
         setLoginPassword('');
+        
+        // Redirect to dashboard after a short delay to show the success message
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
       }
     } catch (err) {
       setError('An error occurred during login');
@@ -99,12 +106,17 @@ export default function LoginForm() {
       if (!user) {
         setError('Email already in use');
       } else {
-        setSuccess('Registration successful!');
+        setSuccess('Registration successful! Redirecting to dashboard...');
         // Clear form
         setRegisterName('');
         setRegisterEmail('');
         setRegisterPassword('');
         setRegisterConfirmPassword('');
+        
+        // Redirect to dashboard after a short delay to show the success message
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
       }
     } catch (err) {
       setError('An error occurred during registration');

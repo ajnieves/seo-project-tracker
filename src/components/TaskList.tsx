@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
 import { 
   Box, 
   Button, 
@@ -26,6 +27,7 @@ import {
   FormHelperText,
   Divider
 } from '@mui/material';
+import Link from 'next/link';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -83,8 +85,18 @@ export default function TaskList({ projectId }: { projectId: string }) {
     }
   }, [projectId]);
   
+  // Get user from context
+  const { user } = useUser();
+
   // Handle opening the dialog for a new task
   const handleOpenDialog = () => {
+    // Check if user is not logged in and already has 5 tasks
+    if (!user && tasks.length >= 5) {
+      // Show dialog with message that user needs to log in to create more tasks
+      alert('You need to log in to create more than 5 tasks per project. Please log in or register to unlock unlimited tasks.');
+      return;
+    }
+
     setEditingTask(null);
     setNewTask({
       title: '',
@@ -248,6 +260,41 @@ export default function TaskList({ projectId }: { projectId: string }) {
   
   return (
     <Box>
+      {/* Free tier limitations banner */}
+      {!user && tasks.length >= 3 && (
+        <Paper 
+          sx={{ 
+            p: 2, 
+            mb: 3, 
+            bgcolor: 'primary.light', 
+            color: 'primary.contrastText',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2
+          }}
+        >
+          <Box>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Free Account Limitations
+            </Typography>
+            <Typography variant="body2">
+              You are currently using a free account which is limited to 5 tasks per project. {tasks.length}/5 tasks used.
+            </Typography>
+          </Box>
+          <Button 
+            variant="contained" 
+            color="secondary"
+            component={Link}
+            href="/auth"
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Login or Register
+          </Button>
+        </Paper>
+      )}
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6">Tasks</Typography>
         <Button 
