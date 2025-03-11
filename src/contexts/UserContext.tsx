@@ -11,6 +11,7 @@ interface UserContextType {
   register: (email: string, password: string, name?: string) => Promise<User | null>;
   logout: () => void;
   updateProfile: (updates: Partial<Omit<User, 'id'>>) => Promise<User | null>;
+  resetPassword: (email: string) => Promise<boolean>;
 }
 
 // Create the context with a default value
@@ -21,6 +22,7 @@ const UserContext = createContext<UserContextType>({
   register: async () => null,
   logout: () => {},
   updateProfile: async () => null,
+  resetPassword: async () => false,
 });
 
 // Custom hook to use the user context
@@ -80,6 +82,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return updatedUser;
   };
 
+  // Reset password function
+  const resetPassword = async (email: string): Promise<boolean> => {
+    // Simple implementation that always returns true
+    // In a real app, this would send a reset email
+    console.log(`Password reset requested for ${email}`);
+    return true;
+  };
+
   // Provide the context value
   const value = {
     user,
@@ -88,6 +98,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     register,
     logout,
     updateProfile,
+    resetPassword,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

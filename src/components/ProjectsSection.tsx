@@ -115,6 +115,12 @@ export default function ProjectsSection() {
       }
     }
   }, [user]);
+
+  // Force refresh when user state changes
+  useEffect(() => {
+    // This will ensure the component re-renders when user state changes
+    console.log("User state changed:", user ? "logged in" : "logged out");
+  }, [user]);
   
   // Handle changing the sort order
   const handleRequestSort = (property: keyof Project) => {

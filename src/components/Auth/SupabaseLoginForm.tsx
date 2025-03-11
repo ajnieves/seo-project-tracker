@@ -18,7 +18,7 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import { useUser } from '@/contexts/SupabaseUserContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
