@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { generateDemoProjectWithTasks } from '@/utils/demoData';
 import { 
   Box, 
   Grid, 
@@ -148,12 +150,20 @@ const initialProjects = [
 
 export default function Dashboard() {
   const router = useRouter();
+  const { user } = useUser();
   const [tasks, setTasks] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>(initialProjects);
   
-  // Load tasks from localStorage
+  // Load tasks from localStorage and generate demo data for non-logged-in users
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // For non-logged-in users, generate demo data if none exists
+      if (!user) {
+        // Generate demo project with tasks
+        generateDemoProjectWithTasks();
+      }
+      
+      // Load tasks from localStorage
       const storedTasks = localStorage.getItem('seoTasks');
       if (storedTasks) {
         try {
@@ -183,7 +193,7 @@ export default function Dashboard() {
         localStorage.setItem('seoProjects', JSON.stringify(initialProjects));
       }
     }
-  }, []);
+  }, [user]);
   
   // Calculate statistics
   const totalTasks = tasks.length;

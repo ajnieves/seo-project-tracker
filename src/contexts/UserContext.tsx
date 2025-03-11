@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, getCurrentUser, setCurrentUser, loginUser, registerUser, logoutUser, initAuthService } from '@/services/authService';
+import { User, getCurrentUser, setCurrentUser, loginUser, registerUser, logoutUser, initAuthService, updateUserProfile } from '@/services/authService';
 
 // Define the context type
 interface UserContextType {
@@ -10,6 +10,7 @@ interface UserContextType {
   login: (email: string, password: string) => Promise<User | null>;
   register: (email: string, password: string, name?: string) => Promise<User | null>;
   logout: () => void;
+  updateProfile: (updates: Partial<Omit<User, 'id'>>) => Promise<User | null>;
 }
 
 // Create the context with a default value
@@ -19,6 +20,7 @@ const UserContext = createContext<UserContextType>({
   login: async () => null,
   register: async () => null,
   logout: () => {},
+  updateProfile: async () => null,
 });
 
 // Custom hook to use the user context
@@ -67,6 +69,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logoutUser();
   };
 
+  // Update profile function
+  const updateProfile = async (updates: Partial<Omit<User, 'id'>>): Promise<User | null> => {
+    if (!user) return null;
+    
+    const updatedUser = updateUserProfile(user.id, updates);
+    if (updatedUser) {
+      setUser(updatedUser);
+    }
+    return updatedUser;
+  };
+
   // Provide the context value
   const value = {
     user,
@@ -74,6 +87,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     register,
     logout,
+    updateProfile,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

@@ -86,6 +86,46 @@ export const logoutUser = (): void => {
   localStorage.removeItem('seoCurrentUser');
 };
 
+// Update user profile
+export const updateUserProfile = (userId: string, updates: Partial<Omit<User, 'id'>>): User | null => {
+  // Load users from localStorage
+  const storedUsers = localStorage.getItem('seoUsers');
+  if (storedUsers) {
+    try {
+      Object.assign(users, JSON.parse(storedUsers));
+    } catch (error) {
+      console.error('Error parsing users from localStorage:', error);
+      return null;
+    }
+  }
+
+  // Check if user exists
+  if (!users[userId]) {
+    return null;
+  }
+
+  // Update user
+  users[userId] = { ...users[userId], ...updates };
+
+  // Save to localStorage
+  localStorage.setItem('seoUsers', JSON.stringify(users));
+
+  // Get the updated user
+  const updatedUser: User = {
+    id: userId,
+    email: users[userId].email,
+    name: users[userId].name
+  };
+
+  // Update current user if this is the current user
+  const currentUser = getCurrentUser();
+  if (currentUser && currentUser.id === userId) {
+    setCurrentUser(updatedUser);
+  }
+
+  return updatedUser;
+};
+
 // Initialize the auth service
 export const initAuthService = (): void => {
   // Load users from localStorage

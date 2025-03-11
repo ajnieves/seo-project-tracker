@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/components/ThemeRegistry';
+import { useUser } from '@/contexts/UserContext';
 import DataManagement from '@/components/DataManagement';
 import { 
   Box, 
@@ -73,6 +74,7 @@ function a11yProps(index: number) {
 }
 
 export default function Settings() {
+  const { user, updateProfile } = useUser();
   const [tabValue, setTabValue] = useState(0);
   const [settings, setSettings] = useState({
     notifications: {
@@ -94,12 +96,23 @@ export default function Settings() {
   });
   
   const [profile, setProfile] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
+    name: user?.name || 'User',
+    email: user?.email || '',
     role: 'SEO Manager',
     company: 'Acme Inc.',
     bio: 'Experienced SEO professional with 5+ years in the industry.'
   });
+
+  // Update profile when user changes
+  useEffect(() => {
+    if (user) {
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        name: user.name || 'User',
+        email: user.email
+      }));
+    }
+  }, [user]);
   
   const [editingProfile, setEditingProfile] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -182,13 +195,42 @@ export default function Settings() {
     });
   };
 
-  const handleSaveProfile = () => {
-    setEditingProfile(false);
-    setSnackbar({
-      open: true,
-      message: 'Profile updated successfully',
-      severity: 'success'
-    });
+  const handleSaveProfile = async () => {
+    if (!user) {
+      setSnackbar({
+        open: true,
+        message: 'You must be logged in to update your profile',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    try {
+      // Only update the name field in the user profile
+      const updatedUser = await updateProfile({ name: profile.name });
+      
+      if (updatedUser) {
+        setEditingProfile(false);
+        setSnackbar({
+          open: true,
+          message: 'Profile updated successfully',
+          severity: 'success'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Failed to update profile',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSnackbar({
+        open: true,
+        message: 'An error occurred while updating your profile',
+        severity: 'error'
+      });
+    }
   };
 
   const handleCloseSnackbar = () => {
