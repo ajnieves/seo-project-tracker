@@ -152,10 +152,10 @@ export default function ProjectsSection() {
   });
 
   const handleOpenDialog = () => {
-    // Check if user is not logged in and already has a project
-    if (!user && projects.length >= 1) {
+    // Check if user is not logged in and already has 2 projects
+    if (!user && projects.length >= 2) {
       // Show dialog with message that user needs to log in to create more projects
-      alert('You need to log in to create more than 1 project. Please log in or register to unlock unlimited projects.');
+      alert('You need to log in to create more than 2 projects. Please log in or register to unlock unlimited projects.');
       return;
     }
     setOpenDialog(true);
@@ -212,7 +212,7 @@ export default function ProjectsSection() {
               Free Account Limitations
             </Typography>
             <Typography variant="body2">
-              You are currently using a free account which is limited to 1 project and 5 tasks per project.
+              You are currently using a free account which is limited to 2 projects and 5 tasks per project.
             </Typography>
           </Box>
           <Button 

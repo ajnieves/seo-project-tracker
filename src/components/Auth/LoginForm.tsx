@@ -11,8 +11,10 @@ import {
   Tabs,
   Tab,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Link as MuiLink
 } from '@mui/material';
+import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 
 interface TabPanelProps {
@@ -167,6 +169,15 @@ export default function LoginForm() {
             onChange={(e) => setLoginPassword(e.target.value)}
             required
           />
+          <Box sx={{ textAlign: 'right', mt: 1 }}>
+            <MuiLink 
+              component={Link} 
+              href="/auth/reset-password" 
+              variant="body2"
+            >
+              Forgot Password?
+            </MuiLink>
+          </Box>
           <Button
             type="submit"
             variant="contained"
